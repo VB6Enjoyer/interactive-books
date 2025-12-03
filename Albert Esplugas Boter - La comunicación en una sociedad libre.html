@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Comunicación en una Sociedad Libre - Interactive Explorer</title>
+    <style>
+        :root {
+            --primary: #003366; /* Deep Blue from cover */
+            --secondary: #C5A059; /* Gold/Bronze */
+            --bg: #f4f4f4;
+            --text: #333;
+            --paper: #fff;
+            --accent: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        aside {
+            width: 280px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .book-cover-mini {
+            width: 100%;
+            height: 120px;
+            background: white;
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 4px solid var(--secondary);
+            margin-bottom: 30px;
+            padding: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .nav-item {
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            font-family: 'Helvetica Neue', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--secondary);
+            color: var(--primary);
+            font-weight: bold;
+            padding-left: 25px;
+        }
+
+        /* Main Content Area */
+        main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+            background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);
+        }
+
+        .chapter-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--paper);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--secondary);
+        }
+
+        .chapter-container.active {
+            display: block;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .interactive-zone {
+            background: #f9f9f9;
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .interactive-title {
+            font-family: sans-serif;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Interactive Elements */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.1s;
+            margin: 5px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        /* Spectrum Grid */
+        .spectrum-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        .frequency {
+            height: 50px;
+            background: #ddd;
+            border: 1px solid #bbb;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .frequency.owned {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+        .frequency.interfered {
+            background: var(--accent);
+            animation: shake 0.5s;
+        }
+
+        /* Candle Animation (IP) */
+        .candle-container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            height: 100px;
+            align-items: flex-end;
+        }
+        .candle {
+            width: 20px;
+            height: 60px;
+            background: #e74c3c;
+            position: relative;
+        }
+        .flame {
+            width: 15px;
+            height: 25px;
+            background: orange;
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -25px;
+            left: 2.5px;
+            box-shadow: 0 0 10px yellow;
+            animation: flicker 1s infinite alternate;
+            display: none;
+        }
+        .candle.lit .flame { display: block; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes flicker { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.1); opacity: 1; } }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(5px); } 50% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            aside { width: 100%; height: auto; padding: 10px; }
+            main { padding: 20px; }
+        }
+
+        .quote-box {
+            border-left: 4px solid var(--primary);
+            background: #eef2f5;
+            padding: 15px;
+            font-style: italic;
+            margin: 20px 0;
+        }
+
+        /* Market Game */
+        .market-item {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            margin: 10px;
+            line-height: 80px;
+            font-size: 2rem;
+            cursor: pointer;
+            position: relative;
+        }
+        .market-item .vote-count {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            font-size: 0.8rem;
+            color: var(--text);
+            line-height: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+<aside>
+    <div class="book-cover-mini">
+        <div>LA COMUNICACIÓN</div>
+        <div style="font-size: 0.8em; margin-top:5px;">EN UNA SOCIEDAD LIBRE</div>
+        <div style="font-size: 0.6em; margin-top:10px; color: #333;">Albert Esplugas Boter</div>
+    </div>
+    <div class="nav-item active" onclick="showChapter('intro')">Introducción</div>
+    <div class="nav-item" onclick="showChapter('ch1')">I. Ética de la Acción Humana</div>
+    <div class="nav-item" onclick="showChapter('ch2')">II. Libertad vs Poder</div>
+    <div class="nav-item" onclick="showChapter('ch3')">III. Libertad de Expresión</div>
+    <div class="nav-item" onclick="showChapter('ch4')">IV. Propiedad Intelectual</div>
+    <div class="nav-item" onclick="showChapter('ch5')">V. Proteccionismo Cultural</div>
+    <div class="nav-item" onclick="showChapter('ch6')">VI. Espectro Radioeléctrico</div>
+    <div class="nav-item" onclick="showChapter('ch7')">VII. Neutralidad en la Red</div>
+    <div class="nav-item" onclick="showChapter('conclusion')">Conclusión</div>
+</aside>
+
+<main>
+    <!-- INTRODUCTION -->
+    <div id="intro" class="chapter-container active">
+        <h1>Introducción</h1>
+        <h2>Una crítica liberal al statu quo</h2>
+        <p>Este trabajo es un intento de refutar las ideas políticas subyacentes en el discurso académico imperante sobre la comunicación. Es un "manual" sobre la libertad de expresión y la comunicación desde una perspectiva liberal (libertaria).</p>
+        <p>El autor, Albert Esplugas, narra cómo su paso por la universidad le expuso a ideas hostiles al libre mercado, motivándole a escribir esta defensa de la propiedad privada y las relaciones voluntarias en el ámbito cultural.</p>
+        
+        <div class="quote-box">
+            "La libertad y su corolario social, el libre mercado, da buenos resultados, funciona. Es una conclusión a menudo bastante contra-intuitiva."
+        </div>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">Concepto Clave: La Mano Invisible</div>
+            <p>El mercado coordina intereses egoístas para generar beneficios sociales.</p>
+            <button class="btn" onclick="alert('¡Bienvenido al análisis! Navega por los capítulos para explorar cómo la libertad se aplica a la radio, la TV, internet y la cultura.')">Comenzar Lectura</button>
+        </div>
+    </div>
+
+    <!-- CHAPTER 1 -->
+    <div id="ch1" class="chapter-container">
+        <h1>I. El Liberalismo</h1>
+        <h2>La ética de la acción humana</h2>
+        <p>El liberalismo versa sobre el uso legítimo de la fuerza. Define la libertad como la ausencia de interferencias violentas (coacción) en la propiedad y el cuerpo de uno mismo.</p>
+        <p>El fundamento es la <strong>Propiedad Privada</strong>. Para evitar conflictos sobre recursos escasos, necesitamos normas. La norma natural es que el primer ocupante o creador posee el recurso.</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">Simulador de Escasez</div>
+            <p>Solo hay 1 manzana (recurso escaso). Hay 2 personas.</p>
+            <div style="font-size: 3rem; margin: 10px;">🍎</div>
+            <div style="display:flex; justify-content:center; gap:20px;">
+                <button class="btn" onclick="document.getElementById('scarcity-result').innerText = 'Conflicto: Ambos pelean por ella. El más fuerte gana (Ley de la selva).'">Sin Propiedad</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('scarcity-result').innerText = 'Paz: El primero que la cultivó decide (Propiedad Privada).'">Con Propiedad</button>
+            </div>
+            <p id="scarcity-result" style="margin-top: 15px; font-weight: bold; color: var(--primary);"></p>
+        </div>
+    </div>
+
+    <!-- CHAPTER 2 -->
+    <div id="ch2" class="chapter-container">
+        <h1>II. Libertad, Poder y Autonomía</h1>
+        <p>Se distingue entre libertad como "poder" (capacidad de hacer algo) y libertad como "ausencia de coacción". El liberalismo defiende la segunda.</p>
+        <p>El mercado no es un juego de suma cero. En un intercambio voluntario, ambas partes ganan (ex ante), de lo contrario no intercambiarían.</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">El Intercambio de Robinson y Viernes</div>
+            <p>Robinson tiene cocos 🥥. Viernes tiene pescado 🐟.</p>
+            <div style="font-size: 2rem;">🧔🥥 &nbsp;&nbsp; ↔️ &nbsp;&nbsp; 🐟👨🏾</div>
+            <button class="btn" onclick="tradeGame()">Realizar Intercambio</button>
+            <p id="trade-result" style="margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <!-- CHAPTER 3 -->
+    <div id="ch3" class="chapter-container">
+        <h1>III. Libertad de Expresión</h1>
+        <h2>Como derecho de propiedad</h2>
+        <p>La libertad de expresión no es un derecho etéreo; es el derecho a usar tu propiedad (tu imprenta, tu voz, tu blog) para decir lo que quieras.</p>
+        <p>No tienes derecho a entrar en la casa (propiedad) de otro para gritar tus opiniones. El límite es la propiedad ajena.</p>
+        <p>El libro argumenta contra las leyes de difamación, el "derecho a la información veraz" impuesto por el estado, y la censura.</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">El Editor vs. El Estado</div>
+            <p>Eres dueño de un periódico. ¿Qué publicas?</p>
+            <button class="btn" onclick="alert('Correcto. Es tu propiedad, tú decides la línea editorial.')">Lo que yo quiera</button>
+            <button class="btn btn-secondary" onclick="alert('En una sociedad libre, el Estado no dicta la verdad. Los lectores te castigarán si mientes dejando de comprarte.')">Lo que el Estado diga que es "Verdad"</button>
+        </div>
+    </div>
+
+    <!-- CHAPTER 4 -->
+    <div id="ch4" class="chapter-container">
+        <h1>IV. Derechos de Autor</h1>
+        <h2>Propiedad sobre las ideas</h2>
+        <p>El autor argumenta <strong>contra</strong> la Propiedad Intelectual (Copyrights y Patentes). Las ideas no son bienes escasos. Si yo uso tu idea, no te la quito (como sí pasaría con una manzana).</p>
+        <p>La PI es un monopolio artificial creado por el Estado que frena la innovación y viola la propiedad sobre bienes tangibles (me prohíbe usar mi tinta y mi papel para copiar un libro).</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">La Prueba de la Vela</div>
+            <p>Las ideas son no-rivales. Si enciendo mi vela con la tuya, tú no pierdes fuego.</p>
+            <div class="candle-container">
+                <div class="candle lit"><div class="flame"></div></div>
+                <div class="candle" id="candle2"><div class="flame" id="flame2"></div></div>
+            </div>
+            <br>
+            <button class="btn" onclick="lightCandle()">Compartir Idea (Encender Vela)</button>
+            <p id="ip-text" style="margin-top: 10px; font-style: italic;"></p>
+        </div>
+    </div>
+
+    <!-- CHAPTER 5 -->
+    <div id="ch5" class="chapter-container">
+        <h1>V. Proteccionismo Cultural</h1>
+        <p>¿Debe el Estado subvencionar el cine o la cultura? No. El mercado es la mejor forma de apoyar la cultura real (la que la gente valora).</p>
+        <p>Las subvenciones crean productos que nadie quiere ver. El "Excepcionalismo Cultural" es una excusa para proteger industrias ineficientes.</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">Juego de Financiación</div>
+            <p>Eres el público. Tienes 3 monedas. ¿A qué película se las das?</p>
+            <div>
+                <div class="market-item" onclick="voteCulture(this)">🎬<div class="vote-count">0</div></div>
+                <div class="market-item" onclick="voteCulture(this)">🎭<div class="vote-count">0</div></div>
+                <div class="market-item" onclick="voteCulture(this)">🎨<div class="vote-count">0</div></div>
+            </div>
+            <p id="culture-msg" style="margin-top: 20px; color: var(--primary);">El mercado asigna recursos según las preferencias reales.</p>
+            <button class="btn btn-secondary" onclick="resetCulture()">Reiniciar (Intervención Estatal)</button>
+        </div>
+    </div>
+
+    <!-- CHAPTER 6 -->
+    <div id="ch6" class="chapter-container">
+        <h1>VI. Espectro Radioeléctrico</h1>
+        <p>El Estado nacionalizó las ondas de radio alegando escasez e interferencias. El autor propone la privatización total del espectro.</p>
+        <p>Las frecuencias deberían tratarse como tierras: el primero que llega y la usa (homesteading) se la queda. Esto incentiva la tecnología para usar mejor el espectro.</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">Colonización del Espectro</div>
+            <p>Haz clic en una frecuencia para apropiarte de ella (Homesteading).</p>
+            <div class="spectrum-grid" id="spectrumGrid">
+                <!-- Generated by JS -->
+            </div>
+            <p id="spectrum-status" style="margin-top:10px;">Estado: Espectro libre.</p>
+        </div>
+    </div>
+
+    <!-- CHAPTER 7 -->
+    <div id="ch7" class="chapter-container">
+        <h1>VII. Neutralidad en la Red</h1>
+        <p>El autor argumenta contra la regulación de la "Neutralidad de la Red". Internet no es un bien público, es una red de redes privadas.</p>
+        <p>Los dueños de las redes deberían poder cobrar precios diferentes por velocidades diferentes (discriminación de precios), lo cual financiaría mejores infraestructuras.</p>
+
+        <div class="interactive-zone">
+            <div class="interactive-title">Gestión de Tráfico</div>
+            <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 20px;">
+                <div style="width: 45%; background: #ddd; padding: 10px; border-radius: 5px;">
+                    <strong>Carril Lento (Gratis)</strong><br>
+                    🐢 E-mails, Texto
+                </div>
+                <div style="width: 45%; background: var(--secondary); padding: 10px; border-radius: 5px; border: 2px solid var(--primary);">
+                    <strong>Carril Rápido (Pago)</strong><br>
+                    🚀 Video HD, Gaming
+                </div>
+            </div>
+            <p>Permitir precios distintos incentiva la inversión en fibra óptica.</p>
+        </div>
+    </div>
+
+    <!-- CONCLUSION -->
+    <div id="conclusion" class="chapter-container">
+        <h1>Conclusión</h1>
+        <p>El libro concluye que la libertad funciona. El mercado no es perfecto, pero tiene mecanismos de autocorrección que el Estado no posee.</p>
+        <p>La propuesta es radical: despolitizar la cultura, la comunicación y la tecnología, devolviendo el poder de decisión a los individuos propietarios.</p>
+        
+        <div class="quote-box">
+            "Todos tenemos un pequeño liberal dentro de nosotros. A veces está en letargo y sólo hace falta despertarlo."
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <div style="font-size: 4rem;">🔓</div>
+            <p><strong>Fin del Resumen Interactivo</strong></p>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    // Navigation Logic
+    function showChapter(id) {
+        // Hide all chapters
+        document.querySelectorAll('.chapter-container').forEach(el => {
+            el.classList.remove('active');
+        });
+        // Show selected
+        document.getElementById(id).classList.add('active');
+        
+        // Update Sidebar UI
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+
+    // Chapter 2: Trade Game
+    function tradeGame() {
+        const res = document.getElementById('trade-result');
+        res.innerHTML = "<strong>¡Éxito!</strong> Robinson valora más el pescado que el coco que da. Viernes valora más el coco que el pescado. Ambos son más ricos después del intercambio.";
+        res.style.color = "green";
+    }
+
+    // Chapter 4: Candle Logic
+    function lightCandle() {
+        const flame2 = document.getElementById('flame2');
+        flame2.style.display = 'block';
+        document.getElementById('ip-text').innerText = "Tu vela sigue encendida. Compartir la idea no te empobreció. La escasez artificial (copyright) apagaría la segunda vela por la fuerza.";
+    }
+
+    // Chapter 5: Culture Voting
+    let coins = 3;
+    function voteCulture(element) {
+        if(coins > 0) {
+            let countDiv = element.querySelector('.vote-count');
+            let current = parseInt(countDiv.innerText);
+            countDiv.innerText = current + 1;
+            coins--;
+            document.getElementById('culture-msg').innerText = `Monedas restantes: ${coins}. Estás financiando lo que TÚ valoras.`;
+        } else {
+            document.getElementById('culture-msg').innerText = "Se acabaron tus recursos. El mercado ha hablado.";
+        }
+    }
+
+    function resetCulture() {
+        coins = 3;
+        document.querySelectorAll('.vote-count').forEach(el => el.innerText = '0');
+        document.getElementById('culture-msg').innerText = "El Estado recauda impuestos y asigna recursos arbitrariamente (a menudo a películas que nadie ve).";
+    }
+
+    // Chapter 6: Spectrum Grid
+    const grid = document.getElementById('spectrumGrid');
+    for(let i=0; i<10; i++) {
+        let div = document.createElement('div');
+        div.className = 'frequency';
+        div.innerText = '📡';
+        div.onclick = function() {
+            if(!this.classList.contains('owned')) {
+                this.classList.add('owned');
+                document.getElementById('spectrum-status').innerText = "¡Frecuencia apropiada (Homesteading)! Es tu propiedad.";
+            } else {
+                this.classList.add('interfered');
+                document.getElementById('spectrum-status').innerText = "¡Interferencia! Violación de propiedad privada.";
+                setTimeout(() => this.classList.remove('interfered'), 500);
+            }
+        };
+        grid.appendChild(div);
+    }
+
+</script>
+
+</body>
+</html>

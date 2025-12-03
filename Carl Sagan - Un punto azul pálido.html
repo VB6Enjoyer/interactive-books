@@ -1,0 +1,525 @@
+This is a fully interactive, single-page web application inspired by Carl Sagan's *Pale Blue Dot* (Un punto azul pálido).
+
+It gamifies the concepts found in the document:
+1.  **The "Find the Dot" Challenge:** Recreates the famous Voyager 1 photo perspective using CSS light beams. You must find Earth.
+2.  **The Solar System Explorer:** Interactive CSS planets based on the book's descriptions (e.g., the hellscape of Venus, the red dust of Mars).
+3.  **Terraforming Mars:** A mini-game based on Chapter 19 ("Remodelar los Planetas"), allowing you to transform Mars from a red desert to a green world.
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carl Sagan: Un Punto Azul Pálido - Experiencia Interactiva</title>
+    <style>
+        :root {
+            --space-black: #050505;
+            --star-white: #ffffff;
+            --pale-blue: #8CB8FF;
+            --sun-beam: rgba(255, 255, 255, 0.08);
+            --accent: #4facfe;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--space-black);
+            color: #ddd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Starfield Background */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 800px;
+            animation: fadeIn 2s ease-in;
+        }
+
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        /* Section Containers */
+        .section-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px;
+            width: 90%;
+            max-width: 900px;
+            transition: transform 0.3s ease;
+        }
+
+        .section-container:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* GAME 1: Find the Dot */
+        #pbd-game {
+            position: relative;
+            height: 400px;
+            background: #000;
+            overflow: hidden;
+            cursor: crosshair;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .beam {
+            position: absolute;
+            width: 150%;
+            height: 60px;
+            background: linear-gradient(90deg, transparent, var(--sun-beam), transparent);
+            transform-origin: left center;
+            pointer-events: none;
+        }
+
+        .the-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: var(--pale-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 4px var(--pale-blue);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+
+        .the-dot:hover {
+            transform: scale(2);
+        }
+
+        #pbd-message {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            width: 80%;
+        }
+
+        /* GAME 2: Solar System */
+        .solar-system {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .planet-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .planet-container:hover {
+            transform: translateY(-10px);
+        }
+
+        .planet {
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.8);
+        }
+
+        /* CSS Planets */
+        .mercury { width: 20px; height: 20px; background: #aaa; }
+        .venus { width: 35px; height: 35px; background: radial-gradient(circle at 30% 30%, #e6c229, #d4af37); }
+        .earth { width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe); }
+        .mars { width: 25px; height: 25px; background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b); transition: background 2s; }
+        .jupiter { width: 80px; height: 80px; background: linear-gradient(180deg, #d39d78, #eacda3, #d39d78, #a47c65); }
+        .saturn { 
+            width: 70px; height: 70px; 
+            background: #f4e2d8; 
+            position: relative;
+        }
+        .saturn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 120px; height: 20px;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            border-radius: 50%;
+            border: 8px solid rgba(200, 180, 150, 0.6);
+            border-top: 8px solid rgba(200, 180, 150, 0.3); /* Back of ring */
+            z-index: -1;
+        }
+        .uranus { width: 50px; height: 50px; background: #7de2e6; }
+        .neptune { width: 48px; height: 48px; background: #3b5998; }
+
+        .planet-label {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        #planet-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-left: 3px solid var(--accent);
+            background: rgba(0,0,0,0.3);
+            min-height: 80px;
+        }
+
+        /* GAME 3: Terraforming */
+        .terraform-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 1rem;
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff6b6b, #2ecc71);
+            transition: width 0.5s;
+        }
+
+        /* Quote Card */
+        .quote-card {
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: center;
+            color: #fff;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .solar-system { gap: 10px; }
+            .planet { transform: scale(0.8); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="starfield" id="starfield"></div>
+
+    <header>
+        <h1>UN PUNTO AZUL PÁLIDO</h1>
+        <h2>Inspirado en la obra de Carl Sagan</h2>
+    </header>
+
+    <!-- SECTION 1: THE DOT -->
+    <div class="section-container">
+        <h3>1. Encuentra el Hogar</h3>
+        <p style="margin-bottom: 15px; color: #ccc;">
+            "Mira ese punto. Eso es aquí. Eso es nuestro hogar. Eso somos nosotros."<br>
+            La nave Voyager 1 tomó una foto a 6.000 millones de kilómetros. La Tierra era apenas una mota de polvo suspendida en un haz de luz solar. <br>
+            <strong>Misión: Encuentra la Tierra escondida en los rayos de luz.</strong>
+        </p>
+        <div id="pbd-game">
+            <!-- Beams and dot generated by JS -->
+            <div id="pbd-message">
+                <h4 style="color: var(--pale-blue)">¡La has encontrado!</h4>
+                <p>"Sobre él ha transcurrido y transcurre la vida de todas las personas a las que queremos... una mota de polvo suspendida en un haz de luz solar."</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: THE VOYAGER JOURNEY -->
+    <div class="section-container">
+        <h3>2. El Gran Tour del Sistema Solar</h3>
+        <p style="margin-bottom: 20px; color: #ccc;">
+            Explora los mundos descritos en el libro. Haz clic en un planeta para leer los análisis de Sagan (basados en el documento).
+        </p>
+        
+        <div class="solar-system">
+            <div class="planet-container" onclick="showPlanetInfo('mercury')">
+                <div class="planet mercury"></div>
+                <div class="planet-label">Mercurio</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('venus')">
+                <div class="planet venus"></div>
+                <div class="planet-label">Venus</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('earth')">
+                <div class="planet earth"></div>
+                <div class="planet-label">Tierra</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('mars')">
+                <div class="planet mars" id="mars-visual"></div>
+                <div class="planet-label">Marte</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('jupiter')">
+                <div class="planet jupiter"></div>
+                <div class="planet-label">Júpiter</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('saturn')">
+                <div class="planet saturn"></div>
+                <div class="planet-label">Saturno</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('uranus')">
+                <div class="planet uranus"></div>
+                <div class="planet-label">Urano</div>
+            </div>
+            <div class="planet-container" onclick="showPlanetInfo('neptune')">
+                <div class="planet neptune"></div>
+                <div class="planet-label">Neptuno</div>
+            </div>
+        </div>
+
+        <div id="planet-info">
+            <p>Selecciona un mundo para comenzar la exploración.</p>
+        </div>
+    </div>
+
+    <!-- SECTION 3: TERRAFORMING MARS -->
+    <div class="section-container">
+        <h3>3. Remodelar los Planetas (Capítulo 19)</h3>
+        <p style="color: #ccc;">
+            Sagan discute la posibilidad de la "terraformación". Marte es el candidato más probable. 
+            Necesitamos aumentar la temperatura y espesar la atmósfera.
+        </p>
+        
+        <div class="terraform-controls">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <button onclick="terraformAction('cfc')">Liberar CFCs</button>
+                <button onclick="terraformAction('plants')">Plantar Líquenes</button>
+                <button onclick="terraformAction('water')">Fundir Casquetes Polares</button>
+            </div>
+            
+            <div style="width: 100%">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                    <span>Estado Actual: <span id="mars-status">Desierto Rojo</span></span>
+                    <span>Habitabilidad: <span id="habitability-score">0%</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="terraform-bar"></div>
+                </div>
+            </div>
+            <p id="terraform-log" style="font-size: 0.9rem; font-style: italic; min-height: 1.2em; color: #8CB8FF;"></p>
+        </div>
+    </div>
+
+    <!-- SECTION 4: REFLECTION -->
+    <div class="section-container">
+        <div class="quote-card">
+            "Nuestros posicionamientos, la importancia que nos auto atribuimos, nuestra errónea creencia de que ocupamos una posición privilegiada en el universo son puestos en tela de juicio por ese pequeño punto de pálida luz."
+            <br><br>
+            <small>— Carl Sagan</small>
+        </div>
+    </div>
+
+    <script>
+        // 1. Generate Stars
+        const starfield = document.getElementById('starfield');
+        for(let i=0; i<150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            const size = Math.random() * 2 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            starfield.appendChild(star);
+        }
+
+        // 2. Pale Blue Dot Game
+        const gameArea = document.getElementById('pbd-game');
+        const dotMessage = document.getElementById('pbd-message');
+        
+        // Create beams
+        for(let i=0; i<3; i++) {
+            const beam = document.createElement('div');
+            beam.className = 'beam';
+            beam.style.top = (20 + i * 30) + '%';
+            beam.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+            beam.style.opacity = Math.random() * 0.5 + 0.2;
+            gameArea.appendChild(beam);
+        }
+
+        // Place the dot randomly within a beam area roughly
+        const dot = document.createElement('div');
+        dot.className = 'the-dot';
+        // Random position but kept somewhat central to ensure it's clickable
+        dot.style.top = (Math.random() * 60 + 20) + '%'; 
+        dot.style.left = (Math.random() * 60 + 20) + '%';
+        
+        dot.addEventListener('click', () => {
+            dotMessage.style.opacity = 1;
+            dot.style.transform = "scale(4)";
+            dot.style.boxShadow = "0 0 20px white";
+        });
+
+        gameArea.appendChild(dot);
+
+        // 3. Planet Info Data (Based on OCR text)
+        const planetData = {
+            mercury: "Mercurio: Perdido en el resplandor solar. Un mundo pequeño, lleno de cráteres, sin atmósfera significativa.",
+            venus: "Venus: Un infierno asfixiante. Temperatura de 470°C. Presión de 90 bares. Cubierto de nubes de ácido sulfúrico. Un ejemplo de efecto invernadero desbocado.",
+            earth: "Tierra: El único hogar que conocemos. Océanos de agua líquida, oxígeno y vida. Una rareza en el sistema solar.",
+            mars: "Marte: Un desierto helado. Tiene volcanes gigantes (Olympus Mons) y antiguos lechos de ríos. Es el candidato principal para la terraformación.",
+            jupiter: "Júpiter: El gigante gaseoso. Posee un sistema de anillos tenues y lunas fascinantes como Ío (volcanes) y Europa (hielo).",
+            saturn: "Saturno: La joya del sistema solar. Sus anillos están hechos de hielo y roca. Su luna Titán tiene una atmósfera densa y materia orgánica.",
+            uranus: "Urano: Un mundo aguamarina. Gira de lado, posiblemente debido a una colisión antigua. Tiene anillos oscuros.",
+            neptune: "Neptuno: El gigante azul ventoso. Su luna Tritón tiene géiseres de nitrógeno y gira en dirección opuesta a la rotación del planeta."
+        };
+
+        function showPlanetInfo(planet) {
+            const infoBox = document.getElementById('planet-info');
+            infoBox.innerHTML = `<p><strong>${planetData[planet].split(':')[0]}</strong>${planetData[planet].substring(planetData[planet].indexOf(':'))}</p>`;
+        }
+
+        // 4. Terraforming Logic
+        let terraformProgress = 0;
+        const marsVisual = document.getElementById('mars-visual');
+        const progressBar = document.getElementById('terraform-bar');
+        const habitabilityText = document.getElementById('habitability-score');
+        const statusText = document.getElementById('mars-status');
+        const logText = document.getElementById('terraform-log');
+
+        function terraformAction(type) {
+            if(terraformProgress >= 100) return;
+
+            let increment = 0;
+            let message = "";
+
+            if(type === 'cfc') {
+                increment = 15;
+                message = "Liberando gases de efecto invernadero... La temperatura sube.";
+            } else if (type === 'plants') {
+                if(terraformProgress < 30) {
+                    message = "¡Demasiado frío! Las plantas mueren.";
+                    increment = 0;
+                } else {
+                    increment = 20;
+                    message = "Líquenes plantados. Comienza la producción de oxígeno.";
+                }
+            } else if (type === 'water') {
+                if(terraformProgress < 50) {
+                    message = "El agua se congela instantáneamente.";
+                    increment = 5;
+                } else {
+                    increment = 25;
+                    message = "El agua fluye. Se forman océanos azules.";
+                }
+            }
+
+            terraformProgress += increment;
+            if(terraformProgress > 100) terraformProgress = 100;
+
+            // Update UI
+            progressBar.style.width = terraformProgress + '%';
+            habitabilityText.innerText = terraformProgress + '%';
+            logText.innerText = message;
+
+            // Visual changes
+            if(terraformProgress > 30) {
+                statusText.innerText = "Calentamiento Global Marciano";
+                marsVisual.style.background = "radial-gradient(circle at 30% 30%, #d35400, #8e44ad)"; // Turning purplish/brown
+            }
+            if(terraformProgress > 60) {
+                statusText.innerText = "Atmósfera Respirable";
+                marsVisual.style.background = "radial-gradient(circle at 30% 30%, #27ae60, #d35400)"; // Greenery appearing
+            }
+            if(terraformProgress >= 100) {
+                statusText.innerText = "Segunda Tierra";
+                marsVisual.style.background = "radial-gradient(circle at 30% 30%, #4facfe, #2ecc71)"; // Blue and Green
+                logText.innerText = "¡Terraformación completada! La humanidad tiene un nuevo hogar.";
+            }
+        }
+
+    </script>
+</body>
+</html>

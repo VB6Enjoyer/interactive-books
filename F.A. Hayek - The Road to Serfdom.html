@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Road to Serfdom: Interactive Experience</title>
+    <style>
+        :root {
+            --paper: #f4f1ea;
+            --ink: #2b2b2b;
+            --red: #c0392b;
+            --accent: #2c3e50;
+            --highlight: #e67e22;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background-color: #333;
+            color: var(--ink);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--paper);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 4px double var(--ink);
+            padding: 20px;
+            text-align: center;
+            background: radial-gradient(circle, #fffcf5 0%, #f4f1ea 100%);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--ink);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            margin-top: 10px;
+            color: #555;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            background: var(--ink);
+            padding: 0;
+        }
+
+        nav button {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--paper);
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        nav button:hover, nav button.active {
+            background: var(--red);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Game Section */
+        .game-ui {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stage-indicator {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--red);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .scene-display {
+            background: #fff;
+            border: 2px solid var(--ink);
+            padding: 40px;
+            margin-bottom: 20px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .emoji-scene {
+            font-size: 4rem;
+            line-height: 1;
+            transition: transform 0.3s;
+        }
+
+        .scene-caption {
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.2rem;
+        }
+
+        .choice-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .choice-btn {
+            background: var(--paper);
+            border: 2px solid var(--ink);
+            padding: 15px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0 var(--ink);
+        }
+
+        .choice-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--ink);
+            background: #fff;
+        }
+
+        .choice-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--ink);
+        }
+
+        .choice-btn.liberty {
+            border-color: var(--accent);
+        }
+
+        .choice-btn.plan {
+            border-color: var(--red);
+        }
+
+        /* Serfdom Meter */
+        .meter-container {
+            margin-top: 30px;
+            border: 1px solid var(--ink);
+            height: 20px;
+            background: #ddd;
+            position: relative;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .meter-label {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-family: sans-serif;
+        }
+
+        /* Library Section */
+        .library-content {
+            line-height: 1.6;
+        }
+
+        .chapter {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
+
+        .chapter h3 {
+            color: var(--red);
+            margin-top: 0;
+        }
+
+        .quote-box {
+            background: #e8e8e8;
+            padding: 15px;
+            border-left: 4px solid var(--ink);
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        /* Game Over Screen */
+        .game-over {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .game-over h2 {
+            font-size: 3rem;
+            color: var(--red);
+        }
+
+        .restart-btn {
+            background: var(--ink);
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* CSS Drawings for Scene */
+        .propaganda-poster {
+            width: 60px;
+            height: 80px;
+            background: var(--red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border: 2px solid black;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            transform: rotate(10deg);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .choice-container {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>The Road to Serfdom</h1>
+        <div class="subtitle">Interactive Simulation & Reader</div>
+    </header>
+
+    <nav>
+        <button onclick="switchView('simulation')" class="active" id="nav-sim">The Simulation</button>
+        <button onclick="switchView('library')" id="nav-lib">The Library</button>
+        <button onclick="switchView('about')" id="nav-about">About</button>
+    </nav>
+
+    <main>
+        <!-- SIMULATION VIEW -->
+        <div id="simulation" class="view active">
+            <div class="game-ui" id="game-active">
+                <div class="stage-indicator">Step <span id="step-num">1</span> of 10</div>
+                
+                <div class="scene-display">
+                    <div class="propaganda-poster" id="poster" style="display:none">OBEY</div>
+                    <div class="emoji-scene" id="scene-emoji">🏭</div>
+                    <div class="scene-caption" id="scene-text">War forces "National Planning"</div>
+                </div>
+
+                <p id="scenario-desc">To permit total mobilization of your country's economy, you gladly surrender many freedoms. You know regimentation was forced by your country's enemies.</p>
+
+                <div class="choice-container">
+                    <button class="choice-btn plan" onclick="makeChoice('plan')">
+                        <strong>Maintain Planning</strong><br>
+                        <small>Keep controls for "Peace Production"</small>
+                    </button>
+                    <button class="choice-btn liberty" onclick="makeChoice('liberty')">
+                        <strong>Restore Liberty</strong><br>
+                        <small>Deregulate and face uncertainty</small>
+                    </button>
+                </div>
+
+                <div class="meter-container">
+                    <div class="meter-label">
+                        <span>Liberty</span>
+                        <span>Serfdom</span>
+                    </div>
+                    <div class="meter-fill" id="serfdom-meter"></div>
+                </div>
+            </div>
+
+            <div id="game-over" class="game-over" style="display:none">
+                <div style="font-size: 5rem">⛓️</div>
+                <h2 id="end-title">SERFDOM ACHIEVED</h2>
+                <p id="end-desc">You have successfully traded all your liberties for security. The Planner controls your job, your recreation, and your thoughts.</p>
+                <button class="restart-btn" onclick="restartGame()">Try Again</button>
+            </div>
+            
+            <div id="game-win" class="game-over" style="display:none">
+                <div style="font-size: 5rem">🕊️</div>
+                <h2 style="color: #2ecc71">LIBERTY PRESERVED</h2>
+                <p>You resisted the temptation of the "New Order". The road was bumpy, but you remained a free individual.</p>
+                <button class="restart-btn" onclick="restartGame()">Replay</button>
+            </div>
+        </div>
+
+        <!-- LIBRARY VIEW -->
+        <div id="library" class="view">
+            <div class="library-content">
+                <h2>Condensed Summary</h2>
+                <p>Based on the Reader's Digest condensed version (April 1945).</p>
+
+                <div class="chapter">
+                    <h3>I. Planning and Power</h3>
+                    <p>In order to achieve their ends the planners must create power – power over men wielded by other men – of a magnitude never before known. Democracy is an obstacle to this suppression of freedom which the centralized direction of economic activity requires.</p>
+                    <div class="quote-box">"Who can seriously doubt that the power which a millionaire... has over me is very much less than that which the smallest bureaucrat possesses?"</div>
+                </div>
+
+                <div class="chapter">
+                    <h3>II. The Great Utopia</h3>
+                    <p>There can be no doubt that most of those in the democracies who demand a central direction of all economic activity still believe that socialism and individual freedom can be combined. Yet socialism was early recognized by many thinkers as the gravest threat to freedom.</p>
+                    <p>Democracy and socialism have nothing in common but one word: equality. But notice the difference: while democracy seeks equality in liberty, socialism seeks equality in restraint and servitude.</p>
+                </div>
+
+                <div class="chapter">
+                    <h3>III. Why the Worst Get on Top</h3>
+                    <p>Just as the democratic statesman who sets out to plan economic life will soon be confronted with the alternative of either assuming dictatorial powers or abandoning his plans, so the totalitarian leader would soon have to choose between disregard of ordinary morals and failure.</p>
+                    <div class="quote-box">"It is for this reason that the unscrupulous are likely to be more successful in a society tending toward totalitarianism."</div>
+                </div>
+
+                <div class="chapter">
+                    <h3>IV. Two Kinds of Security</h3>
+                    <p>There is the certainty of a given minimum of sustenance for all... and the security of a given standard of life. The former can be achieved without endangering freedom. The latter—protecting specific incomes—is insidious.</p>
+                    <p>If you guarantee to some a fixed part of a variable cake, the share left to the rest is bound to fluctuate proportionally more than the size of the whole.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABOUT VIEW -->
+        <div id="about" class="view">
+            <h2>About This Project</h2>
+            <p>This interactive application is an abstraction of Friedrich A. Hayek's <em>The Road to Serfdom</em>, specifically drawing from the condensed version and the famous cartoon booklet published by General Motors in the 'Thought Starter' series.</p>
+            
+            <h3>The Core Argument</h3>
+            <p>Hayek argues that central planning of the economy inevitably leads to totalitarianism because:</p>
+            <ul style="list-style-type: square; padding-left: 20px;">
+                <li>Planners cannot agree on a single plan without forcing consensus.</li>
+                <li>Economic control gives the state power over all aspects of life.</li>
+                <li>The "worst" elements of society rise to the top to enforce the plan.</li>
+                <li>Rule of Law is replaced by arbitrary decisions.</li>
+            </ul>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <div style="font-size: 3rem;">⚖️</div>
+                <p><em>"A policy of freedom for the individual is the only truly progressive policy."</em></p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Game State
+    let serfdomLevel = 10; // Starts low (0-100)
+    let currentStep = 0;
+    
+    // Scenarios based on the Cartoons in the PDF
+    const scenarios = [
+        {
+            title: "War Mobilization",
+            emoji: "🏭💂‍♂️",
+            desc: "War forces 'national planning'. To permit total mobilization, you surrender many freedoms. Now the war is ending.",
+            poster: false,
+            choices: {
+                plan: { text: "Keep Controls", outcome: "Many want 'planning' to stay. Arguments for a 'peace production board' are heard.", impact: 15 },
+                liberty: { text: "End Controls", outcome: "You dismantle the boards. It's chaotic, but the market begins to adjust.", impact: -5 }
+            }
+        },
+        {
+            title: "The Utopia Promise",
+            emoji: "🌈📜",
+            desc: "The 'Planners' promise Utopias. A rosy plan for farmers, a plan for workers, a plan for cities.",
+            poster: false,
+            choices: {
+                plan: { text: "Promise Everything", outcome: "You are elected! But now the farmers and workers want different things.", impact: 15 },
+                liberty: { text: "Be Realistic", outcome: "You explain that resources are limited. You lose popularity, but retain honesty.", impact: 0 }
+            }
+        },
+        {
+            title: "Disagreement",
+            emoji: "🗣️💢",
+            desc: "The citizens can't agree on ONE Utopia. The farmers want high prices, workers want low food costs.",
+            poster: false,
+            choices: {
+                plan: { text: "Force Compromise", outcome: "The 'Planners' hate to force agreement, but they must to make the plan work.", impact: 15 },
+                liberty: { text: "Let Market Decide", outcome: "Prices fluctuate. People are annoyed, but no one is coerced.", impact: -5 }
+            }
+        },
+        {
+            title: "Propaganda",
+            emoji: "📢🧠",
+            desc: "To get the plan to work, you need everyone to believe in it. Dissent is slowing down production.",
+            poster: true,
+            choices: {
+                plan: { text: "Sell the Plan", outcome: "You establish a giant propaganda machine. Gullible people find agreement.", impact: 20 },
+                liberty: { text: "Allow Debate", outcome: "The plan stalls because people keep arguing. Efficiency drops.", impact: -5 }
+            }
+        },
+        {
+            title: "Confidence Fades",
+            emoji: "📉🤷",
+            desc: "The Planners make mistakes. There is a shortage of plumbing but a surplus of potatoes. People are angry.",
+            poster: true,
+            choices: {
+                plan: { text: "Appoint Strong Man", outcome: "Let's get a man who can MAKE the plan work. A strong leader is given power.", impact: 25 },
+                liberty: { text: "Decentralize", outcome: "You admit the central board can't know everything. You return power to locals.", impact: -10 }
+            }
+        },
+        {
+            title: "The Strong Man",
+            emoji: "🕴️👢",
+            desc: "The new leader hammers out a plan and forces obedience. He needs a scapegoat for failures.",
+            poster: true,
+            choices: {
+                plan: { text: "Blame Minority", outcome: "A negative aim welds party unity. You blame 'saboteurs' for the plan's failure.", impact: 25 },
+                liberty: { text: "Resign", outcome: "You try to resign, but the party says you are essential... or else.", impact: 10 }
+            }
+        },
+        {
+            title: "Occupations Planned",
+            emoji: "👨‍🔧🚫",
+            desc: "A carpenter wants to be a plumber. But the Plan calls for more carpenters.",
+            poster: true,
+            choices: {
+                plan: { text: "Assign Jobs", outcome: "Your profession is 'planned'. The wider job choice promised is a tragic farce.", impact: 20 },
+                liberty: { text: "Allow Switch", outcome: "The labor allocation fails. The Plan collapses.", impact: -20 }
+            }
+        },
+        {
+            title: "The End of Truth",
+            emoji: "🤐📚",
+            desc: "No one opposes the leader's plan. It would be suicide. Truth is whatever the Leader says it is.",
+            poster: true,
+            choices: {
+                plan: { text: "Control Press", outcome: "Your thinking is 'planned'. Posters, radio, press—all tell the same lies.", impact: 20 },
+                liberty: { text: "Speak Out", outcome: "The secret police visit you at night...", impact: 0 } // Trap
+            }
+        },
+        {
+            title: "Recreation Planned",
+            emoji: "⚽👮",
+            desc: "Sports and amusements are organized to keep the nation fit for the State's purposes.",
+            poster: true,
+            choices: {
+                plan: { text: "Regiment Fun", outcome: "It is no coincidence that sports are regimented. Once started, planners can't stop.", impact: 15 },
+                liberty: { text: "Private Clubs", outcome: "Private associations are banned for being 'anti-social'.", impact: 10 }
+            }
+        },
+        {
+            title: "The Final Step",
+            emoji: "🔫💀",
+            desc: "You are fired from your job. In a planned state, this means you starve.",
+            poster: true,
+            choices: {
+                plan: { text: "Accept Fate", outcome: "Discipline is planned. Being fired is a crime against the state.", impact: 100 },
+                liberty: { text: "Revolt", outcome: "It is too late.", impact: 100 }
+            }
+        }
+    ];
+
+    function switchView(viewId) {
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(viewId).classList.add('active');
+        
+        // Map nav IDs
+        const navMap = {'simulation': 'nav-sim', 'library': 'nav-lib', 'about': 'nav-about'};
+        document.getElementById(navMap[viewId]).classList.add('active');
+    }
+
+    function renderScenario() {
+        if (currentStep >= scenarios.length) {
+            endGame(true);
+            return;
+        }
+
+        const data = scenarios[currentStep];
+        document.getElementById('step-num').innerText = currentStep + 1;
+        document.getElementById('scene-emoji').innerText = data.emoji;
+        document.getElementById('scene-text').innerText = data.title;
+        document.getElementById('scenario-desc').innerText = data.desc;
+        
+        // Update poster visibility
+        document.getElementById('poster').style.display = data.poster ? 'flex' : 'none';
+
+        // Update buttons
+        const btns = document.querySelectorAll('.choice-btn');
+        btns[0].innerHTML = `<strong>${data.choices.plan.text}</strong>`;
+        btns[1].innerHTML = `<strong>${data.choices.liberty.text}</strong>`;
+    }
+
+    function makeChoice(type) {
+        const data = scenarios[currentStep];
+        const choice = data.choices[type];
+        
+        // Update Meter
+        serfdomLevel += choice.impact;
+        if (serfdomLevel < 0) serfdomLevel = 0;
+        updateMeter();
+
+        // Show outcome briefly or move next
+        // For simplicity in this code, we just move next but check win/loss
+        if (serfdomLevel >= 100) {
+            endGame(false);
+        } else {
+            currentStep++;
+            if (currentStep < scenarios.length) {
+                renderScenario();
+            } else {
+                endGame(true);
+            }
+        }
+    }
+
+    function updateMeter() {
+        const meter = document.getElementById('serfdom-meter');
+        meter.style.width = serfdomLevel + '%';
+        
+        // Change color based on level
+        if(serfdomLevel < 30) meter.style.background = '#2ecc71';
+        else if(serfdomLevel < 70) meter.style.background = '#f1c40f';
+        else meter.style.background = '#e74c3c';
+    }
+
+    function endGame(survived) {
+        document.getElementById('game-active').style.display = 'none';
+        if (survived && serfdomLevel < 80) {
+            document.getElementById('game-win').style.display = 'block';
+        } else {
+            document.getElementById('game-over').style.display = 'block';
+            if(survived) {
+                // They finished the steps but had high serfdom
+                document.getElementById('end-title').innerText = "SOFT TYRANNY";
+                document.getElementById('end-desc').innerText = "You technically survived, but the state controls everything. You are a cog in the machine.";
+            }
+        }
+    }
+
+    function restartGame() {
+        serfdomLevel = 10;
+        currentStep = 0;
+        document.getElementById('game-active').style.display = 'block';
+        document.getElementById('game-over').style.display = 'none';
+        document.getElementById('game-win').style.display = 'none';
+        updateMeter();
+        renderScenario();
+    }
+
+    // Init
+    updateMeter();
+    renderScenario();
+
+</script>
+
+</body>
+</html>
